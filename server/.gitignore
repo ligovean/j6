@@ -1,0 +1,8 @@
+.idea
+*.xml
+*.iml
+target
+src/test
+.gradle/
+out/
+src/main/resources/
