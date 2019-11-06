@@ -21,14 +21,16 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline().addLast(
-                                    new ObjectDecoder(50 * 1024 * 1024, ClassResolvers.cacheDisabled(null)),
-                                    new ObjectEncoder(),
-                                    new MainHandler()
+                                    //new ObjectDecoder(50 * 1024 * 1024, ClassResolvers.cacheDisabled(null)),
+                                    //new ObjectEncoder(),
+                                    //new MainHandler()
+                                    new ProtocolHandler()
+                                    //new DiscardServerHandler()
                             );
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-            ChannelFuture future = b.bind(8190).sync();
+            ChannelFuture future = b.bind(8199).sync();
             future.channel().closeFuture().sync();
         } finally {
             mainGroup.shutdownGracefully();

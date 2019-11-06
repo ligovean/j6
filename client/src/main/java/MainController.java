@@ -24,20 +24,24 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
         Thread t = new Thread(() -> {
-            try {
-                while (true) {
-                    AbstractMessage am = Network.readObject();
-                    if (am instanceof FileMessage) {
-                        FileMessage fm = (FileMessage) am;
-                        Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
-                        refreshLocalFilesList();
-                    }
-                }
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            } finally {
-                Network.stop();
+
+            while (true){
+
             }
+//            try {
+//                while (true) {
+//                    AbstractMessage am = Network.readObject();
+//                    if (am instanceof FileMessage) {
+//                        FileMessage fm = (FileMessage) am;
+//                        Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+//                        refreshLocalFilesList();
+//                    }
+//                }
+//            } catch (ClassNotFoundException | IOException e) {
+//                e.printStackTrace();
+//            } finally {
+//                Network.stop();
+//            }
         });
         t.setDaemon(true);
         t.start();
@@ -45,20 +49,25 @@ public class MainController implements Initializable {
     }
 
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
-        if (tfFileName.getLength() > 0) {
-            Network.sendMsg(new FileRequest(tfFileName.getText()));
-            tfFileName.clear();
-        }
+        System.out.println("Press the Button");
+
+        Network.sendMsg(new FileRequest("text.txt"));
+        //Network.sendMsg(filenameBytes);
+
+//        if (tfFileName.getLength() > 0) {
+//            Network.sendMsg(new FileRequest(tfFileName.getText()));
+//            tfFileName.clear();
+//        }
     }
 
     public void refreshLocalFilesList() {
         updateUI(() -> {
-            try {
-                filesList.getItems().clear();
-                Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.getItems().add(o));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                filesList.getItems().clear();
+//                Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.getItems().add(o));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         });
     }
 
