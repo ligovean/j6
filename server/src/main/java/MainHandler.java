@@ -2,6 +2,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -26,10 +27,16 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
 
                 Files.write(Paths.get("server_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
             }
+            else if (msg instanceof FilesListRequest){
+                FilesListRequest flr = (FilesListRequest) msg;
+                System.out.println("Запрос списка файлов пользователя ID: " + flr.getClientId() + " с клиента.");
+                ctx.writeAndFlush(new FilesListMessage(flr.getClientId()));
+            }
         } finally {
             ReferenceCountUtil.release(msg);
         }
     }
+
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

@@ -15,10 +15,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Observable;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MainController implements Initializable {
     @FXML
@@ -26,12 +23,14 @@ public class MainController implements Initializable {
 
     @FXML
     ListView<String> filesList;
+    ListView<String> filesListServer;
 
     ObservableList selectedItems;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
+
         Thread t = new Thread(() -> {
             try {
                 while (true) {
@@ -40,6 +39,15 @@ public class MainController implements Initializable {
                         FileMessage fm = (FileMessage) am;
                         Files.write(Paths.get("client_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
                         refreshLocalFilesList();
+                    }
+                    if (am instanceof FilesListMessage){
+                        System.out.println("Пришел список фалов от сервера ");
+                        FilesListMessage rfm = (FilesListMessage) am;
+                        ArrayList<String> fls = rfm.getFilesList();
+                        Platform.runLater(() ->{for (String fileName:fls) {
+                            filesListServer.getItems().add(fileName);
+                        }});
+
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -52,10 +60,12 @@ public class MainController implements Initializable {
         t.start();
         filesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         refreshLocalFilesList();
-
         filesList.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
             selectedItems = filesList.getSelectionModel().getSelectedItems();
         });
+
+        //Network.sendMsg(new FilesListRequest(UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f")));
+
     }
 
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
@@ -72,6 +82,7 @@ public class MainController implements Initializable {
             FileMessage fm = new FileMessage(Paths.get("client_storage/" + it.next()));
             Network.sendMsg(fm);
         }
+
     }
 
 
