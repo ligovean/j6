@@ -44,10 +44,9 @@ public class MainController implements Initializable {
                         System.out.println("Пришел список фалов от сервера ");
                         FilesListMessage rfm = (FilesListMessage) am;
                         ArrayList<String> fls = rfm.getFilesList();
-                        Platform.runLater(() ->{for (String fileName:fls) {
+                        for (String fileName:fls) {
                             filesListServer.getItems().add(fileName);
-                        }});
-
+                        };
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -64,8 +63,9 @@ public class MainController implements Initializable {
             selectedItems = filesList.getSelectionModel().getSelectedItems();
         });
 
-        //Network.sendMsg(new FilesListRequest(UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f")));
-
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        Network.sendMsg(new FilesListRequest(UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f"))); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
