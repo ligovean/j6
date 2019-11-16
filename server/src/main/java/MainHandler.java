@@ -16,16 +16,18 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("Запрос файла " + fr.getFilename() + " с клиента.");
 
                 if (Files.exists(Paths.get("server_storage/" + fr.getFilename()))) {
-                    FileMessage fm = new FileMessage(Paths.get("server_storage/" + fr.getFilename()));
-                    System.out.println("Отправка файла " + fm.getFilename() + " на клиент.");
+                    FileMessage fm = new FileMessage(fr.getClientId(),Paths.get("server_storage/" + fr.getFilename()));
+                    System.out.println("Отправка файла " + fm.getFilename() + " на клиент ID: " + fr.getClientId());
                     ctx.writeAndFlush(fm);
                 }
             }
             else if (msg instanceof FileMessage){
                 FileMessage fm = (FileMessage) msg;
-                System.out.println("Пришел файл " + fm.getFilename() + " с клиента.");
-
+                System.out.println("Пришел файл " + fm.getFilename() + " с клиента ID: " + fm.getClientId());
+                //TODO в зависимости от ID Client писать фал в его папку
                 Files.write(Paths.get("server_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+
+                ctx.writeAndFlush(new FilesListMessage(fm.getClientId())); //Отправка Обновленного листа файлов с сервера
             }
             else if (msg instanceof FilesListRequest){
                 FilesListRequest flr = (FilesListRequest) msg;

@@ -22,15 +22,20 @@ public class MainController implements Initializable {
     TextField tfFileName;
 
     @FXML
-    ListView<String> filesList;
+    ListView<String> filesListClient;
+
+    @FXML
     ListView<String> filesListServer;
 
-    ObservableList selectedItems;
+    ObservableList selectedItemsClient;
+
+    ObservableList selectedItemsServer;
+
+    private final UUID clientId = UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f");
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Network.start();
-
         Thread t = new Thread(() -> {
             try {
                 while (true) {
@@ -41,12 +46,10 @@ public class MainController implements Initializable {
                         refreshLocalFilesList();
                     }
                     if (am instanceof FilesListMessage){
-                        System.out.println("Пришел список фалов от сервера ");
+                        System.out.println("Пришел список фаЙлов от сервера ");
                         FilesListMessage rfm = (FilesListMessage) am;
                         ArrayList<String> fls = rfm.getFilesList();
-                        for (String fileName:fls) {
-                            filesListServer.getItems().add(fileName);
-                        };
+                        refreshServerFilesList(fls);
                     }
                 }
             } catch (ClassNotFoundException | IOException e) {
@@ -57,45 +60,61 @@ public class MainController implements Initializable {
         });
         t.setDaemon(true);
         t.start();
-        filesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        filesListClient.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        filesListServer.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         refreshLocalFilesList();
-        filesList.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
-            selectedItems = filesList.getSelectionModel().getSelectedItems();
+        filesListClient.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
+            selectedItemsClient = filesListClient.getSelectionModel().getSelectedItems();
         });
 
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Network.sendMsg(new FilesListRequest(UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f"))); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        filesListServer.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
+            selectedItemsServer = filesListServer.getSelectionModel().getSelectedItems();
+        });
+
+
+        Network.sendMsg(new FilesListRequest(clientId));
     }
 
+    //Скачать с Сервера
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
-        if (tfFileName.getLength() > 0) {
-            Network.sendMsg(new FileRequest(tfFileName.getText()));
-            tfFileName.clear();
+        System.out.println(selectedItemsServer);
+        Iterator it = selectedItemsServer.iterator();
+        while (it.hasNext()) {
+            Network.sendMsg(new FileRequest(clientId, it.next().toString()));
         }
     }
 
+    //Отправить на сервер
     public void pressOnUploadBtn(ActionEvent actionEvent) throws IOException {
-        System.out.println(selectedItems);
-        Iterator it = selectedItems.iterator();
+        //System.out.println(selectedItems);
+        Iterator it = selectedItemsClient.iterator();
         while (it.hasNext()){
-            FileMessage fm = new FileMessage(Paths.get("client_storage/" + it.next()));
+            FileMessage fm = new FileMessage(clientId,Paths.get("client_storage/" + it.next()));
             Network.sendMsg(fm);
         }
-
     }
 
 
     public void refreshLocalFilesList() {
         updateUI(() -> {
             try {
-                filesList.getItems().clear();
-                Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.getItems().add(o));
+                filesListClient.getItems().clear();
+                Files.list(Paths.get("client_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesListClient.getItems().add(o));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
     }
+
+    public void refreshServerFilesList(ArrayList<String> fls) {
+        updateUI(() -> {
+                filesListServer.getItems().clear();
+                fls.forEach(o -> filesListServer.getItems().add(o));
+        });
+    }
+
+
 
     public static void updateUI(Runnable r) {
         if (Platform.isFxApplicationThread()) {
