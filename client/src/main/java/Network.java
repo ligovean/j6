@@ -51,4 +51,8 @@ public class Network {
         Object obj = in.readObject();
         return (AbstractMessage) obj;
     }
+
+    public static boolean isAuth(){
+        return true;
+    }
 }

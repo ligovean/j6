@@ -8,7 +8,7 @@ public class FileRequest extends AbstractMessage {
     }
 
     public FileRequest(UUID clientId, String filename) {
-        this.clientId = clientId;
+        super.clientId = clientId;
         this.filename = filename;
     }
 }

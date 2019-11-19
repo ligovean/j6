@@ -8,10 +8,9 @@ public class FilesListMessage extends AbstractMessage {
     ArrayList<String> filesList = new ArrayList<>();
     public FilesListMessage(UUID clientId) {
         try {
-            this.clientId =  clientId;
-            //TODO Отправка списка файлов из пользовательской папку clientId
+            super.clientId =  clientId;
 
-            Files.list(Paths.get("server_storage")).map(p -> p.getFileName().toString()).forEach(o -> filesList.add(o));
+            Files.list(Paths.get("server_storage/" + clientId + "/")).map(p -> p.getFileName().toString()).forEach(o -> filesList.add(o));
         } catch (IOException e) {
             e.printStackTrace();
         }

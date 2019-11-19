@@ -16,7 +16,7 @@ public class FileMessage extends AbstractMessage {
     }
 
     public FileMessage(UUID clientId, Path path) throws IOException {
-        this.clientId =  clientId;
+        super.clientId =  clientId;
         filename = path.getFileName().toString();
         data = Files.readAllBytes(path);
     }

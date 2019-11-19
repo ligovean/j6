@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.UUID;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
     @Override
@@ -15,8 +16,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 FileRequest fr = (FileRequest) msg;
                 System.out.println("Запрос файла " + fr.getFilename() + " с клиента.");
 
-                if (Files.exists(Paths.get("server_storage/" + fr.getFilename()))) {
-                    FileMessage fm = new FileMessage(fr.getClientId(),Paths.get("server_storage/" + fr.getFilename()));
+                if (Files.exists(Paths.get("server_storage/"+fr.getClientId()+"/" + fr.getFilename()))) {
+                    FileMessage fm = new FileMessage(fr.getClientId(),Paths.get("server_storage/"+fr.getClientId()+"/" + fr.getFilename()));
                     System.out.println("Отправка файла " + fm.getFilename() + " на клиент ID: " + fr.getClientId());
                     ctx.writeAndFlush(fm);
                 }
@@ -24,8 +25,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             else if (msg instanceof FileMessage){
                 FileMessage fm = (FileMessage) msg;
                 System.out.println("Пришел файл " + fm.getFilename() + " с клиента ID: " + fm.getClientId());
-                //TODO в зависимости от ID Client писать фал в его папку
-                Files.write(Paths.get("server_storage/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
+                Files.write(Paths.get("server_storage/"+fm.getClientId()+"/" + fm.getFilename()), fm.getData(), StandardOpenOption.CREATE);
 
                 ctx.writeAndFlush(new FilesListMessage(fm.getClientId())); //Отправка Обновленного листа файлов с сервера
             }
@@ -33,6 +33,23 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 FilesListRequest flr = (FilesListRequest) msg;
                 System.out.println("Запрос списка файлов пользователя ID: " + flr.getClientId() + " с клиента.");
                 ctx.writeAndFlush(new FilesListMessage(flr.getClientId()));
+            }
+            else if (msg instanceof AbstractMessage){ //Авторизация
+                AuthMessage am = (AuthMessage) msg;
+                System.out.println("С клиента пришел запрос на аторизацию. login: " + am.getLoginFiled() + ", psw: " + am.getPasswordField());
+                if (am.getLoginFiled()!=null){
+                    UUID clientId = AuthServ.getIdByLogPass(am.getLoginFiled(), am.getPasswordField());
+
+                    //System.out.println("id client: " + clientId);
+
+                    AuthMessageReq amr = null;
+
+                    if (clientId != null)  amr = new AuthMessageReq(true,clientId);
+                    else  amr = new AuthMessageReq(false,clientId);
+                    ctx.writeAndFlush(amr);
+                    ctx.writeAndFlush(new FilesListMessage(clientId));
+                };
+
             }
         } finally {
             ReferenceCountUtil.release(msg);

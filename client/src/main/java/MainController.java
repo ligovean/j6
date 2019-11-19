@@ -5,6 +5,8 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SelectionModel;
@@ -17,27 +19,69 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-public class MainController implements Initializable {
+//public class MainController implements Initializable {
+public class MainController {
     @FXML
     TextField tfFileName;
-
     @FXML
     ListView<String> filesListClient;
-
     @FXML
     ListView<String> filesListServer;
+    @FXML
+    HBox topPanel;
+    @FXML
+    TextField loginFiled;
+    @FXML
+    PasswordField passwordField;
+
+    @FXML
+    HBox bottomPanel;
+
+    @FXML
+    TextField textField;
+    @FXML
+    Button btn1;
+    @FXML
+    ComboBox comboBox;
+
+    //private final UUID clientId = UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f");
+    private UUID clientId;
 
     ObservableList selectedItemsClient;
 
     ObservableList selectedItemsServer;
 
-    private final UUID clientId = UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f");
+    private boolean isAuthorized;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        Network.start();
+
+
+
+
+//    @Override
+//    public void initialize(URL location, ResourceBundle resources) {
+    public void connect() {
         Thread t = new Thread(() -> {
             try {
+                //Получение сообщения об Авторизации
+
+                while (true) {
+                    AbstractMessage am = Network.readObject();
+                    if (am instanceof AuthMessageReq) {
+                        AuthMessageReq amr = (AuthMessageReq) am;
+                        if(amr.isAuth()){
+                            setAuthorized(true, amr.getClientId());
+                            break;
+                        }else {
+                            System.out.println("НЕ КОРРЕКТНЫЙ ЛОГИН ИЛИ ПАРОЛЬ!");
+                        }
+                    }
+                }
+
+/*
+                AbstractMessage amr = new AuthMessageReq(true,UUID.fromString("7dc53df5-703e-49b3-8670-b1c468f47f1f"));
+                setAuthorized(true, amr.getClientId());
+*/
+
                 while (true) {
                     AbstractMessage am = Network.readObject();
                     if (am instanceof FileMessage) {
@@ -62,7 +106,6 @@ public class MainController implements Initializable {
         t.start();
         filesListClient.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         filesListServer.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
         refreshLocalFilesList();
         filesListClient.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
             selectedItemsClient = filesListClient.getSelectionModel().getSelectedItems();
@@ -73,7 +116,6 @@ public class MainController implements Initializable {
         });
 
 
-        Network.sendMsg(new FilesListRequest(clientId));
     }
 
     //Скачать с Сервера
@@ -87,10 +129,12 @@ public class MainController implements Initializable {
 
     //Отправить на сервер
     public void pressOnUploadBtn(ActionEvent actionEvent) throws IOException {
-        //System.out.println(selectedItems);
+
         Iterator it = selectedItemsClient.iterator();
         while (it.hasNext()){
             FileMessage fm = new FileMessage(clientId,Paths.get("client_storage/" + it.next()));
+            System.out.println("clientId: " + clientId + ", fm.getClientId: " + fm.getClientId());
+
             Network.sendMsg(fm);
         }
     }
@@ -114,6 +158,25 @@ public class MainController implements Initializable {
         });
     }
 
+    public void setAuthorized(boolean isAuthorized, UUID clientId) {
+        this.clientId = clientId;
+        updateUI(() -> {
+            this.isAuthorized = isAuthorized;
+            if(!isAuthorized) {
+                topPanel.setVisible(true);
+                topPanel.setManaged(true);
+                bottomPanel.setVisible(false);
+                bottomPanel.setManaged(false);
+                Network.sendMsg(new FilesListRequest(clientId));
+            } else {
+                topPanel.setVisible(false);
+                topPanel.setManaged(false);
+                bottomPanel.setVisible(true);
+                bottomPanel.setManaged(true);
+            }
+        });
+    }
+
 
 
     public static void updateUI(Runnable r) {
@@ -122,5 +185,13 @@ public class MainController implements Initializable {
         } else {
             Platform.runLater(r);
         }
+    }
+
+    //Отправка сообщения об Авторизации
+    public void auth() {
+        Network.start();
+            connect();
+        System.out.println("Отправить запрос на авторизацию! login: " + loginFiled.getText() + ", psw: " + passwordField.getText());
+            Network.sendMsg(new AuthMessage(loginFiled.getText(),passwordField.getText()));
     }
 }

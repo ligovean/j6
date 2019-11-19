@@ -1,17 +1,17 @@
 import java.util.UUID;
 
 public class FilesListRequest extends AbstractMessage {
-    UUID clientId;
+
 
     public FilesListRequest(UUID clientId) {
-        this.clientId = clientId;
+        super.clientId = clientId;
     }
 
     public UUID getClientId() {
-        return clientId;
+        return super.clientId;
     }
 
     public void setClientId(UUID clientId) {
-        this.clientId = clientId;
+        super.clientId = clientId;
     }
 }

@@ -10,10 +10,15 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
+import java.util.logging.Logger;
+
+
 public class Server {
     public void run() throws Exception {
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+        Logger loggerFile = Logger.getLogger("file");
+
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(mainGroup, workerGroup)
@@ -28,6 +33,7 @@ public class Server {
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
+            AuthServ.connect();
             ChannelFuture future = b.bind(8190).sync();
             future.channel().closeFuture().sync();
         } finally {
