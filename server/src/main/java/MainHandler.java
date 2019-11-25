@@ -34,6 +34,14 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("Запрос списка файлов пользователя ID: " + flr.getClientId() + " с клиента.");
                 ctx.writeAndFlush(new FilesListMessage(flr.getClientId()));
             }
+            else if (msg instanceof FileDeleteRequest){
+                FileDeleteRequest fdr = (FileDeleteRequest) msg;
+                System.out.println("Удаление списка файлов от пользователя: " + fdr.getClientId() + " с клиента.");
+
+                Files.deleteIfExists(Paths.get("server_storage/"+fdr.getClientId()+"/" + fdr.getFilename()));
+
+                ctx.writeAndFlush(new FilesListMessage(fdr.getClientId()));
+            }
             else if (msg instanceof AbstractMessage){ //Авторизация
                 AuthMessage am = (AuthMessage) msg;
                 System.out.println("С клиента пришел запрос на аторизацию. login: " + am.getLoginFiled() + ", psw: " + am.getPasswordField());

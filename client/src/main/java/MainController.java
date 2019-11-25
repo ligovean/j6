@@ -55,7 +55,6 @@ public class MainController {
     private boolean isAuthorized;
 
 
-
 //    @Override
 //    public void initialize(URL location, ResourceBundle resources) {
     public void connect() {
@@ -139,6 +138,30 @@ public class MainController {
         }
     }
 
+    //Удалить на Сервере
+    public void pressOnServerDelete(ActionEvent actionEvent) {
+        System.out.println(selectedItemsServer);
+        if (selectedItemsServer != null) {
+            Iterator it = selectedItemsServer.iterator();
+            while (it.hasNext()) {
+                Network.sendMsg(new FileDeleteRequest(clientId, it.next().toString()));
+            }
+        } else refreshLocalFilesList();
+    }
+
+    public void pressOnLocalRenameBtn(){
+        //TODO Переименование файла
+    }
+    public void pressOnLocalDelBtn() throws IOException {
+        if (selectedItemsClient != null) {
+            Iterator it = selectedItemsClient.iterator();
+
+            while (it.hasNext()) {
+                Files.deleteIfExists(Paths.get("client_storage/" + it.next()));
+            }
+            refreshLocalFilesList();
+        }
+    }
 
     public void refreshLocalFilesList() {
         updateUI(() -> {
