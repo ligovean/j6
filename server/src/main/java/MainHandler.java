@@ -47,13 +47,13 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 System.out.println("С клиента пришел запрос на аторизацию. login: " + am.getLoginFiled() + ", psw: " + am.getPasswordField());
                 if (am.getLoginFiled()!=null){
                     UUID clientId = AuthServ.getIdByLogPass(am.getLoginFiled(), am.getPasswordField());
-
+                    String clientName = AuthServ.getNameByLogPass(am.getLoginFiled(), am.getPasswordField());
                     //System.out.println("id client: " + clientId);
 
                     AuthMessageReq amr = null;
 
-                    if (clientId != null)  amr = new AuthMessageReq(true,clientId);
-                    else  amr = new AuthMessageReq(false,clientId);
+                    if (clientId != null)  amr = new AuthMessageReq(true,clientId,clientName);
+                    else  amr = new AuthMessageReq(false,clientId,clientName);
                     ctx.writeAndFlush(amr);
                     ctx.writeAndFlush(new FilesListMessage(clientId));
                 };

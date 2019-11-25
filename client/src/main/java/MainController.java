@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -12,6 +13,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -22,6 +24,9 @@ import java.util.*;
 
 //public class MainController implements Initializable {
 public class MainController {
+    @FXML
+    Parent root;
+
     @FXML
     TextField tfFileName;
     @FXML
@@ -54,7 +59,11 @@ public class MainController {
 
     private boolean isAuthorized;
 
+    private Stage primaryStage;
 
+    public void setStage(Stage stage) {
+        this.primaryStage = stage;
+    }
 //    @Override
 //    public void initialize(URL location, ResourceBundle resources) {
     public void connect() {
@@ -68,6 +77,8 @@ public class MainController {
                         AuthMessageReq amr = (AuthMessageReq) am;
                         if(amr.isAuth()){
                             setAuthorized(true, amr.getClientId());
+
+                            setTitle(amr.getClientName());
                             break;
                         }else {
                             System.out.println("НЕ КОРРЕКТНЫЙ ЛОГИН ИЛИ ПАРОЛЬ!");
@@ -180,6 +191,13 @@ public class MainController {
                 fls.forEach(o -> filesListServer.getItems().add(o));
         });
     }
+
+    public void setTitle(String title){
+        updateUI(() -> {
+            primaryStage.setTitle("My Cloud " + title);
+        });
+    };
+
 
     public void setAuthorized(boolean isAuthorized, UUID clientId) {
         this.clientId = clientId;

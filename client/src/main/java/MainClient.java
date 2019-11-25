@@ -15,6 +15,8 @@ public class MainClient extends Application {
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         primaryStage.show();
+        MainController controller = fxmlLoader.getController();
+        controller.setStage(primaryStage);
     }
 
     public static void main(String[] args) {
