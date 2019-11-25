@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
@@ -52,8 +53,6 @@ public class MainController {
     ObservableList selectedItemsServer;
 
     private boolean isAuthorized;
-
-
 
 
 
@@ -114,28 +113,29 @@ public class MainController {
         filesListServer.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
             selectedItemsServer = filesListServer.getSelectionModel().getSelectedItems();
         });
-
-
     }
 
     //Скачать с Сервера
     public void pressOnDownloadBtn(ActionEvent actionEvent) {
         System.out.println(selectedItemsServer);
-        Iterator it = selectedItemsServer.iterator();
-        while (it.hasNext()) {
-            Network.sendMsg(new FileRequest(clientId, it.next().toString()));
-        }
+        if (selectedItemsServer != null) {
+            Iterator it = selectedItemsServer.iterator();
+            while (it.hasNext()) {
+                Network.sendMsg(new FileRequest(clientId, it.next().toString()));
+            }
+        } else refreshLocalFilesList();
     }
 
     //Отправить на сервер
     public void pressOnUploadBtn(ActionEvent actionEvent) throws IOException {
+        if (selectedItemsClient != null) {
+            Iterator it = selectedItemsClient.iterator();
 
-        Iterator it = selectedItemsClient.iterator();
-        while (it.hasNext()){
-            FileMessage fm = new FileMessage(clientId,Paths.get("client_storage/" + it.next()));
-            System.out.println("clientId: " + clientId + ", fm.getClientId: " + fm.getClientId());
-
-            Network.sendMsg(fm);
+            while (it.hasNext()) {
+                FileMessage fm = new FileMessage(clientId, Paths.get("client_storage/" + it.next()));
+                System.out.println("clientId: " + clientId + ", fm.getClientId: " + fm.getClientId());
+                Network.sendMsg(fm);
+            }
         }
     }
 
